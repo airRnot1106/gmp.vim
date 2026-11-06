@@ -1,17 +1,17 @@
 # gmp.vim
 
-Markdown preview for Vim and Neovim, in your browser.
+Markdown preview for Vim and Neovim, right in your browser.
 
-gmp.vim is a port of [bufpreview.vim](https://github.com/kat0h/bufpreview.vim) from [denops.vim](https://github.com/vim-denops/denops.vim) to [goda.vim](https://github.com/Shougo/goda.vim). A Go binary replaces Deno, and the page and its assets are built into that binary, so a preview needs no network access.
+gmp.vim is a port of [bufpreview.vim](https://github.com/kat0h/bufpreview.vim) from [denops.vim](https://github.com/vim-denops/denops.vim) to [goda.vim](https://github.com/Shougo/goda.vim). It replaces Deno with a Go binary that bundles the preview page and its assets directly, so you can preview files without network access.
 
 ## Features
 
-- Works on Vim and Neovim.
-- Updates the page as you type, and scrolls it to follow the cursor.
-- Renders syntax highlighting, YAML front matter, task lists, KaTeX, Mermaid, and PlantUML.
-- Loads relative images from the directory of the Markdown file.
+- Works in Vim and Neovim
+- Live preview updates as you type and follows your cursor
+- Syntax highlighting, YAML front matter, task lists, KaTeX, Mermaid, and PlantUML support
+- Relative images resolve from the Markdown file's directory
 
-PlantUML diagrams load from the public PlantUML server, as they do in bufpreview.vim.
+PlantUML diagrams are fetched from the public PlantUML server, matching bufpreview.vim's behavior.
 
 ## Requirements
 
@@ -22,11 +22,11 @@ PlantUML diagrams load from the public PlantUML server, as they do in bufpreview
 
 Windows is not supported.
 
-## Install
+## Installation
 
-### With a plugin manager
+### Using a plugin manager
 
-Install goda.vim and gmp.vim, then run `nix build` in the gmp.vim directory. The plugin finds the binary at `result/bin/gmp`.
+Install both goda.vim and gmp.vim, then run `nix build` inside the plugin directory. The plugin expects the binary at `result/bin/gmp`.
 
 With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
@@ -52,9 +52,9 @@ call dein#add('Shougo/goda.vim')
 call dein#add('airRnot1106/gmp.vim', {'build': 'nix build'})
 ```
 
-### With the flake
+### Using Nix Flakes
 
-The default package is a Vim plugin that holds `bin/gmp` and depends on goda.vim. With Home Manager:
+The default package provides the Vim plugin along with `bin/gmp`, and handles the goda.vim dependency automatically. For Home Manager:
 
 ```nix
 {
@@ -67,30 +67,30 @@ The default package is a Vim plugin that holds `bin/gmp` and depends on goda.vim
 }
 ```
 
-The flake also provides `gmp` (the binary), `client` (the page and bundle), and `goda-vim`.
+The flake also outputs `gmp` (the binary), `client` (the frontend bundle), and `goda-vim`.
 
-## Try it
+## Quick Start
 
-These commands open a temporary sample file without your configuration and start the preview in your browser:
+You can test the preview without touching your config by running:
 
 ```sh
 nix run github:airRnot1106/gmp.vim         # Neovim
 nix run github:airRnot1106/gmp.vim#vim     # Vim
 ```
 
-In a checkout, use `nix run` and `nix run .#vim`. Arguments go to the editor. The sample file is deleted when the editor exits.
+If you already cloned the repo locally, use `nix run` or `nix run .#vim` instead. Extra arguments are passed through to the editor, and the temporary sample file is cleaned up on exit.
 
 ## Usage
 
-These commands exist in Markdown buffers:
+The following commands are available when editing Markdown:
 
 | Command | Action |
 | --- | --- |
-| `:PreviewMarkdown` | Start the preview. Any open preview closes first. |
-| `:PreviewMarkdownClose` | Stop the preview. |
-| `:PreviewMarkdownToggle` | Start the preview, or stop it if one is open. |
+| `:PreviewMarkdown` | Start previewing the current buffer, closing any active preview first. |
+| `:PreviewMarkdownClose` | Close the active preview. |
+| `:PreviewMarkdownToggle` | Toggle the preview on or off. |
 
-To open the preview whenever you edit Markdown:
+To automatically open a preview when opening a Markdown file:
 
 ```vim
 augroup gmp
@@ -99,17 +99,17 @@ augroup gmp
 augroup END
 ```
 
-## Configuration
+## Options
 
-| Variable | Default | Meaning |
+| Variable | Default | Description |
 | --- | --- | --- |
-| `g:gmp_binary` | Unset | Path of the binary. Overrides `bin/gmp` and `result/bin/gmp`. |
-| `g:gmp_open_browser_fn` | `''` | Name of a Vim function that receives the URL and opens it. |
-| `g:gmp_browser` | `''` | Browser to open. The system default when empty. |
-| `b:gmp_server_host`, `g:gmp_server_host` | `'127.0.0.1'` | Address the server listens on. |
-| `b:gmp_server_port`, `g:gmp_server_port` | `0` | Port the server listens on. `0` picks a free port. |
+| `g:gmp_binary` | Unset | Path to the binary. Overrides `bin/gmp` and `result/bin/gmp`. |
+| `g:gmp_open_browser_fn` | `''` | Custom Vim function name to open the preview URL. |
+| `g:gmp_browser` | `''` | Browser command to use (defaults to system default). |
+| `b:gmp_server_host`, `g:gmp_server_host` | `'127.0.0.1'` | Server listen address. |
+| `b:gmp_server_port`, `g:gmp_server_port` | `0` | Server port (0 chooses an available port). |
 
-The URL always appears in `:messages`. If the browser does not open, read `goda#log('gmp')`.
+The preview URL is printed to `:messages`. If your browser does not open automatically, check `goda#log('gmp')`.
 
 ## Development
 
@@ -120,19 +120,11 @@ go test ./...
 nix flake check
 ```
 
-`nix flake check` runs the Go tests, the end-to-end tests on real Vim and Neovim, and a check that `go.mod` and the `goda-vim` input pin the same goda.vim revision. Flakes see only files tracked by Git, so run `git add` on new files before `nix build`.
+Running `nix flake check` will run the Go tests, E2E tests against actual Vim and Neovim instances, and make sure `go.mod` stays in sync with the `goda-vim` flake input. Keep in mind that Nix flakes ignore untracked files, so remember to `git add` any new files before testing or building.
 
 ## Special thanks
 
-gmp.vim keeps the browser client and the behavior of [bufpreview.vim](https://github.com/kat0h/bufpreview.vim) by [Kota Kato](https://github.com/kat0h).
-
-bufpreview.vim credits these projects:
-
-- [denops.vim](https://github.com/vim-denops/denops.vim)
-- [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim)
-- [previm](https://github.com/previm/previm)
-- [dps-ghosttext.vim](https://github.com/gamoutatsumi/dps-ghosttext.vim)
-- [Vim-jp](https://vim-jp.org/)
+- [bufpreview.vim](https://github.com/kat0h/bufpreview.vim)
 
 ## License
 
