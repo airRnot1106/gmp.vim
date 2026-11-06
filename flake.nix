@@ -121,6 +121,18 @@
         in
         {
           unit = goTest "unit" "go test ./internal/...";
+          e2e = goTest "e2e" ''
+            export HOME=$TMPDIR
+            export PATH=${
+              pkgs.lib.makeBinPath [
+                pkgs.vim
+                pkgs.neovim
+              ]
+            }:$PATH
+            export GMP_E2E_GODA=${goda-vim}
+            export GMP_E2E_STRICT=1
+            go test -v -count=1 ./e2e
+          '';
           goda-pin = pkgs.runCommand "gmp-goda-pin" { } ''
             grep -E 'github.com/Shougo/goda.vim v[^ ]*-${builtins.substring 0 12 goda-vim.rev}( |$)' ${./go.mod}
             touch $out
