@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  nix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: nixbuild/nix-quick-install-action@v35
+        with:
+          nix_conf: |
+            max-jobs = auto
+      - uses: nix-community/cache-nix-action@v7.0.2
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          save: ${{ github.ref == 'refs/heads/main' }}
+          purge: ${{ github.ref == 'refs/heads/main' }}
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
+      - run: nix flake check -L
+
+  without-nix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: lts/*
+      - run: (cd client && npm ci && npm run build) && go build -o bin/gmp .
+      - run: go test ./internal/...
