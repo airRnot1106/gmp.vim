@@ -2,7 +2,7 @@
   description = "Markdown preview for Vim and Neovim on goda.vim";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     goda-vim = {
       url = "github:Shougo/goda.vim/39970dfb8213ac3085ad908ee2609f286429d790";
       flake = false;
