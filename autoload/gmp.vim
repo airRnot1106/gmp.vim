@@ -60,7 +60,7 @@ function! s:start() abort
       return
     endif
   endfor
-  throw 'gmp: no binary found, run nix build in ' . s:root
+  throw 'gmp: no binary found, run nix build in ' . s:root . ' or see :help gmp-install'
 endfunction
 
 " goda#notify() starts a registered binary that died, and the fresh process

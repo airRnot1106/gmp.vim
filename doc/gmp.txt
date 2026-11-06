@@ -11,12 +11,16 @@ denops.vim to goda.vim.
 INSTALL							*gmp-install*
 
 gmp.vim needs goda.vim, Vim 9.1 with |+job| and |+channel| or Neovim 0.11, and
-Nix to build the binary. Windows is not supported.
+either Nix or Go 1.26 and npm to build the binary. Windows is not supported.
 
 With vim-plug:
 >
 	Plug 'Shougo/goda.vim'
 	Plug 'airRnot1106/gmp.vim', { 'do': 'nix build' }
+<
+Without Nix, run this in the plugin directory. The binary lands at bin/gmp.
+>
+	(cd client && npm ci && npm run build) && go build -o bin/gmp .
 <
 With the flake, the default package is a Vim plugin that holds bin/gmp and
 depends on goda.vim. See the README.

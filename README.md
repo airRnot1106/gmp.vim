@@ -19,7 +19,7 @@ PlantUML diagrams are fetched from the public PlantUML server, matching bufprevi
 
 - Vim 9.1 with `+job` and `+channel`, or Neovim 0.11
 - [goda.vim](https://github.com/Shougo/goda.vim)
-- [Nix](https://nixos.org) with flakes enabled, to build the binary
+- [Nix](https://nixos.org) with flakes enabled, or [Go](https://go.dev) 1.26 and [npm](https://www.npmjs.com), to build the binary
 - A browser
 
 Windows is not supported.
@@ -52,6 +52,24 @@ With [dein.vim](https://github.com/Shougo/dein.vim):
 ```vim
 call dein#add('Shougo/goda.vim')
 call dein#add('airRnot1106/gmp.vim', {'build': 'nix build'})
+```
+
+### Without Nix
+
+Build the binary with Go and npm instead. Run this inside the plugin directory:
+
+```sh
+(cd client && npm ci && npm run build) && go build -o bin/gmp .
+```
+
+The plugin finds the binary at `bin/gmp`. To build on install and update, use this command in place of `nix build` in the plugin manager examples above. For example, with lazy.nvim:
+
+```lua
+{
+  'airRnot1106/gmp.vim',
+  dependencies = { 'Shougo/goda.vim' },
+  build = '(cd client && npm ci && npm run build) && go build -o bin/gmp .',
+}
 ```
 
 ### Using Nix Flakes

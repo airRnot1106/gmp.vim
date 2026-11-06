@@ -1,5 +1,6 @@
 /client/dist/*
 !/client/dist/.gitkeep
 /client/node_modules/
+/bin/
 /result
 /result-*
