@@ -1,0 +1,26 @@
+{
+  "name": "gmp-client",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "esbuild src/markdown.js --bundle --minify --format=esm --target=es2017 --loader:.woff2=file --loader:.woff=file --loader:.ttf=file --asset-names=[name] --outfile=dist/markdown.bundle.js && cp src/markdown.html dist/markdown.html"
+  },
+  "dependencies": {
+    "events": "3.3.0",
+    "github-markdown-css": "4.0.0",
+    "highlight.js": "11.11.1",
+    "incremental-dom": "0.7.0",
+    "katex": "0.16.35",
+    "markdown-it": "14.1.1",
+    "markdown-it-incremental-dom": "2.1.0",
+    "markdown-it-meta": "0.0.1",
+    "markdown-it-plantuml": "1.4.1",
+    "markdown-it-task-lists": "2.1.1",
+    "markdown-it-texmath": "1.0.0",
+    "mermaid": "11.12.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}
