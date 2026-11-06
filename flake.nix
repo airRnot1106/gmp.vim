@@ -83,8 +83,42 @@
 
         default = vim-plugin;
       };
+
+      mkDemo =
+        pkgs: editor:
+        let
+          built = mkPackages pkgs;
+          init = pkgs.writeText "gmp-demo.vim" ''
+            set runtimepath^=${built.goda-vim-plugin},${built.vim-plugin}
+            autocmd VimEnter * PreviewMarkdown
+          '';
+          script = pkgs.writeShellApplication {
+            name = "gmp-demo";
+            text = ''
+              dir=$(mktemp -d)
+              trap 'rm -rf "$dir"' EXIT
+              cp ${./demo}/* "$dir"
+              chmod -R u+w "$dir"
+              for i in $(seq 1 50); do
+                printf '\n## Section %s\n\nScroll target %s.\n' "$i" "$i" >> "$dir/sample.md"
+              done
+              ${pkgs.lib.getExe editor} --clean --cmd 'source ${init}' "$@" "$dir/sample.md"
+            '';
+          };
+        in
+        {
+          type = "app";
+          program = pkgs.lib.getExe script;
+          meta.description = "Open a sample Markdown file in ${editor.pname} with only gmp.vim and goda.vim";
+        };
     in
     {
+      apps = forAllSystems (pkgs: rec {
+        default = neovim;
+        neovim = mkDemo pkgs pkgs.neovim;
+        vim = mkDemo pkgs pkgs.vim;
+      });
+
       packages = forAllSystems (
         pkgs:
         let

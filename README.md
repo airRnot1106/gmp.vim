@@ -69,6 +69,17 @@ The default package is a Vim plugin that holds `bin/gmp` and depends on goda.vim
 
 The flake also provides `gmp` (the binary), `client` (the page and bundle), and `goda-vim`.
 
+## Try it
+
+These commands open a temporary sample file without your configuration and start the preview in your browser:
+
+```sh
+nix run github:airRnot1106/gmp.vim         # Neovim
+nix run github:airRnot1106/gmp.vim#vim     # Vim
+```
+
+In a checkout, use `nix run` and `nix run .#vim`. Arguments go to the editor. The sample file is deleted when the editor exits.
+
 ## Usage
 
 These commands exist in Markdown buffers:
