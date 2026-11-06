@@ -9,6 +9,8 @@ workflows:
         - 'actions/setup-node@v7.1.0'
         - 'nix-community/cache-nix-action@v7.0.2'
         - 'nixbuild/nix-quick-install-action@v35'
+    '.github/workflows/dependabot-auto-merge.yaml':
+        - 'dependabot/fetch-metadata@v3.1.0'
 dependencies:
     'actions/checkout@v7.0.1':
         ref: 'v7.0.1'
@@ -25,6 +27,11 @@ dependencies:
         commit: 'sha1-949feb2413d6458794dcd2491c4babbbce0c15c1'
         owner_id: 44036562
         repo_id: 189476904
+    'dependabot/fetch-metadata@v3.1.0':
+        ref: 'v3.1.0'
+        commit: 'sha1-25dd0e34f4fe68f24cc83900b1fe3fe149efef98'
+        owner_id: 27347476
+        repo_id: 371068214
     'nix-community/cache-nix-action@v7.0.2':
         ref: 'v7.0.2'
         commit: 'sha1-7df957e333c1e5da7721f60227dbba6d06080569'
