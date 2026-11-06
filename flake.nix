@@ -70,6 +70,7 @@
             fileset = pkgs.lib.fileset.unions [
               ./LICENSE
               ./autoload
+              ./doc
               ./ftplugin
             ];
           };

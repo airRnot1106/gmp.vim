@@ -1,0 +1,92 @@
+*gmp.txt*	Markdown preview for Vim and Neovim on goda.vim
+
+==============================================================================
+INTRODUCTION						*gmp*
+
+gmp.vim shows the current Markdown buffer in a browser. The page updates as
+you type and scrolls to follow the cursor. It is a port of bufpreview.vim from
+denops.vim to goda.vim.
+
+==============================================================================
+INSTALL							*gmp-install*
+
+gmp.vim needs goda.vim, Vim 9.1 with |+job| and |+channel| or Neovim 0.11, and
+Nix to build the binary. Windows is not supported.
+
+With vim-plug:
+>
+	Plug 'Shougo/goda.vim'
+	Plug 'airRnot1106/gmp.vim', { 'do': 'nix build' }
+<
+With the flake, the default package is a Vim plugin that holds bin/gmp and
+depends on goda.vim. See the README.
+
+The binary is looked up in this order: |g:gmp_binary|, bin/gmp and
+result/bin/gmp in the plugin directory.
+
+==============================================================================
+COMMANDS						*gmp-commands*
+
+These commands exist in Markdown buffers. At most one preview is open.
+
+							*:PreviewMarkdown*
+:PreviewMarkdown	Start the preview. Any open preview closes first.
+
+							*:PreviewMarkdownClose*
+:PreviewMarkdownClose	Stop the preview.
+
+							*:PreviewMarkdownToggle*
+:PreviewMarkdownToggle	Start the preview, or stop it if one is open.
+
+Deleting the buffer also stops the preview. To open the preview whenever you
+edit Markdown:
+>
+	augroup gmp
+	  autocmd!
+	  autocmd FileType markdown PreviewMarkdown
+	augroup END
+<
+==============================================================================
+CONFIGURATION						*gmp-configuration*
+
+							*g:gmp_binary*
+g:gmp_binary
+	Path of the binary. Unset by default.
+
+							*g:gmp_open_browser_fn*
+g:gmp_open_browser_fn
+	Name of a Vim function that receives the URL and opens it.
+	Default: ""
+
+							*g:gmp_browser*
+g:gmp_browser
+	Browser to open. The system default when empty.
+	Default: ""
+>
+	let g:gmp_browser = 'chromium'
+<
+					*g:gmp_server_host* *b:gmp_server_host*
+g:gmp_server_host
+b:gmp_server_host
+	Address the server listens on. On a loopback address the server
+	refuses requests whose Host header is not 127.0.0.1, localhost or
+	::1.
+	Default: "127.0.0.1"
+
+					*g:gmp_server_port* *b:gmp_server_port*
+g:gmp_server_port
+b:gmp_server_port
+	Port the server listens on. 0 picks a free port.
+	Default: 0
+
+==============================================================================
+TROUBLESHOOTING						*gmp-troubleshooting*
+
+The URL always appears in |:messages|. If the browser does not open, or the
+message "preview lost" appears, read the output of the binary:
+>
+	:echo goda#log('gmp')
+<
+After "preview lost", |:PreviewMarkdown| starts a new preview.
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
