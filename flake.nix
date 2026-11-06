@@ -42,7 +42,7 @@
           pname = "gmp";
           inherit version;
           src = ./.;
-          vendorHash = "sha256-6RL1wybInoJF+EeIJBxV0BSOXi5j0qP2CuSjSXpAapY=";
+          vendorHash = "sha256-YaflM80d4knBldJdqNpmYF8k9vOAW4JtSG6WIVs3hY8=";
           subPackages = [ "." ];
           doCheck = false;
           preBuild = ''
@@ -93,6 +93,34 @@
             default
             ;
           goda-vim = built.goda-vim-plugin;
+        }
+      );
+
+      checks = forAllSystems (
+        pkgs:
+        let
+          built = mkPackages pkgs;
+          goTest =
+            name: command:
+            built.gmp.overrideAttrs {
+              pname = "gmp-${name}";
+              doCheck = true;
+              __darwinAllowLocalNetworking = true;
+              checkPhase = ''
+                runHook preCheck
+                ${command}
+                runHook postCheck
+              '';
+              installPhase = "touch $out";
+              postInstall = "";
+            };
+        in
+        {
+          unit = goTest "unit" "go test ./internal/...";
+          goda-pin = pkgs.runCommand "gmp-goda-pin" { } ''
+            grep -E 'github.com/Shougo/goda.vim v[^ ]*-${builtins.substring 0 12 goda-vim.rev}( |$)' ${./go.mod}
+            touch $out
+          '';
         }
       );
 
