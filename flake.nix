@@ -67,7 +67,11 @@
           inherit version;
           src = pkgs.lib.fileset.toSource {
             root = ./.;
-            fileset = ./LICENSE;
+            fileset = pkgs.lib.fileset.unions [
+              ./LICENSE
+              ./autoload
+              ./ftplugin
+            ];
           };
           dependencies = [ goda-vim-plugin ];
           preInstall = ''
