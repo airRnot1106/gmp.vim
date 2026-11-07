@@ -30,7 +30,8 @@
           pname = "gmp-client";
           inherit version;
           src = ./client;
-          npmDepsHash = "sha256-oSytPz31fwkph+XdxHmFMUqjHGoq5137yWoHFhy+Q+Q=";
+          npmDeps = pkgs.importNpmLock { npmRoot = ./client; };
+          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
           installPhase = ''
             runHook preInstall
             cp -r dist $out
