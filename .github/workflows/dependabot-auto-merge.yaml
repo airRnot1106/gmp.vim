@@ -21,6 +21,7 @@ jobs:
       - id: metadata
         uses: dependabot/fetch-metadata@v3.1.0
       - id: direction
+        shell: bash
         run: |
           is_ahead() {
             [ "$(gh api "repos/$1/$2/compare/$3...$4" --jq .status)" = ahead ]
