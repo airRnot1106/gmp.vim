@@ -20,11 +20,59 @@ jobs:
     steps:
       - id: metadata
         uses: dependabot/fetch-metadata@v3.1.0
+      - id: direction
+        run: |
+          is_ahead() {
+            [ "$(gh api "repos/$1/$2/compare/$3...$4" --jq .status)" = ahead ]
+          }
+
+          locked_revs() {
+            gh api -H 'Accept: application/vnd.github.raw' "repos/$REPO/contents/flake.lock?ref=$1" |
+              jq -r '.nodes | to_entries[] | select(.value.locked) | [.key, .value.locked.type, .value.locked.owner, .value.locked.repo, .value.locked.rev] | @tsv'
+          }
+
+          forward_nix() {
+            local changed
+            changed=$(join -t $'\t' -a 1 -a 2 -e - -o 0,1.2,1.3,1.4,1.5,2.5 \
+              <(locked_revs "$BASE_SHA" | sort) <(locked_revs "$HEAD_SHA" | sort) |
+              awk -F '\t' '$5 != $6')
+            [ -n "$changed" ] || return 1
+            while IFS=$'\t' read -r _ type owner repo old new; do
+              [ "$type" = github ] && [ "$old" != - ] && [ "$new" != - ] || return 1
+              is_ahead "$owner" "$repo" "$old" "$new" || return 1
+            done <<<"$changed"
+          }
+
+          forward_versions() {
+            local pairs
+            pairs=$(jq -r '.[] | [.prevVersion // "", .newVersion // ""] | @tsv' <<<"$UPDATES")
+            [ -n "$pairs" ] || return 1
+            while IFS=$'\t' read -r old new; do
+              [ -n "$old" ] && [ -n "$new" ] && [ "$old" != "$new" ] || return 1
+              [ "$(printf '%s\n%s\n' "$old" "$new" | sort -V | tail -n 1)" = "$new" ] || return 1
+            done <<<"$pairs"
+          }
+
+          if [ "$ECOSYSTEM" = nix ]; then check=forward_nix; else check=forward_versions; fi
+          if "$check"; then
+            echo 'forward=true' >>"$GITHUB_OUTPUT"
+          else
+            echo 'Skipping auto-merge: the update could not be confirmed as moving forward.'
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          UPDATES: ${{ steps.metadata.outputs.updated-dependencies-json }}
       # Nix inputs track commits, so their updates have no semver update type.
       - if: >-
-          steps.metadata.outputs.package-ecosystem == 'nix' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          steps.direction.outputs.forward == 'true' && (
+            steps.metadata.outputs.package-ecosystem == 'nix' ||
+            steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
+            steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          )
         run: |
           gh pr review --approve "$PR_URL"
           gh pr merge --auto --squash "$PR_URL"
