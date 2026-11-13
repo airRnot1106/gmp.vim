@@ -55,5 +55,5 @@ jobs:
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: lts/*
-      - run: (cd client && npm ci && npm run build) && go build -o bin/gmp .
+      - run: (cd client && npm ci && npm run build) && go build -o bin/goda-mp .
       - run: go test ./internal/...

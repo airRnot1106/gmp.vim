@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/Shougo/goda.vim/host"
 
-	"github.com/airRnot1106/gmp.vim/client"
-	"github.com/airRnot1106/gmp.vim/internal/preview"
+	"github.com/airRnot1106/goda-mp.vim/client"
+	"github.com/airRnot1106/goda-mp.vim/internal/preview"
 )
 
 func main() {

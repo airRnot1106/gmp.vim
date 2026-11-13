@@ -52,7 +52,7 @@ func dial(t *testing.T, url string, header http.Header) (*websocket.Conn, error)
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
-	ws := "ws" + strings.TrimPrefix(url, "http") + "/_gmp/ws"
+	ws := "ws" + strings.TrimPrefix(url, "http") + "/_goda-mp/ws"
 	c, _, err := websocket.Dial(ctx, ws, &websocket.DialOptions{HTTPHeader: header})
 	if err != nil {
 		return nil, err
@@ -275,7 +275,7 @@ func TestRoutes(t *testing.T) {
 	host := strings.TrimPrefix(url, "http://")
 	for path, want := range map[string]string{
 		"/":                        "<title>page</title>",
-		"/_gmp/markdown.bundle.js": "bundle()",
+		"/_goda-mp/markdown.bundle.js": "bundle()",
 		"/image.png":               "pixels",
 		"/markdown.bundle.js":      "user file",
 	} {

@@ -1,0 +1,98 @@
+*goda_mp.txt*	Markdown preview for Vim and Neovim on goda.vim
+
+==============================================================================
+INTRODUCTION							     *goda-mp*
+
+goda-mp.vim shows the current Markdown buffer in a browser. The page updates
+as you type and scrolls to follow the cursor. It is a port of bufpreview.vim
+from denops.vim to goda.vim.
+
+==============================================================================
+INSTALL							     *goda-mp-install*
+
+goda-mp.vim needs goda.vim, Vim 9.1 with |+job| and |+channel| or Neovim
+0.11, and either Nix or Go 1.26 and npm to build the binary. Windows is not
+supported.
+
+With vim-plug:
+>
+	Plug 'Shougo/goda.vim'
+	Plug 'airRnot1106/goda-mp.vim', { 'do': 'nix build' }
+<
+Without Nix, run this in the plugin directory. The binary lands at
+bin/goda-mp.
+>
+	(cd client && npm ci && npm run build) && go build -o bin/goda-mp .
+<
+With the flake, the default package is a Vim plugin that holds bin/goda-mp and
+depends on goda.vim. See the README.
+
+The binary is looked up in this order: |g:goda_mp#binary|, bin/goda-mp and
+result/bin/goda-mp in the plugin directory.
+
+==============================================================================
+COMMANDS						    *goda-mp-commands*
+
+These commands exist in Markdown buffers. At most one preview is open.
+
+							    *:PreviewMarkdown*
+:PreviewMarkdown	Start the preview. Any open preview closes first.
+
+						       *:PreviewMarkdownClose*
+:PreviewMarkdownClose	Stop the preview.
+
+						      *:PreviewMarkdownToggle*
+:PreviewMarkdownToggle	Start the preview, or stop it if one is open.
+
+Deleting the buffer also stops the preview. To open the preview whenever you
+edit Markdown:
+>
+	augroup goda_mp
+	  autocmd!
+	  autocmd FileType markdown PreviewMarkdown
+	augroup END
+<
+==============================================================================
+CONFIGURATION					       *goda-mp-configuration*
+
+							    *g:goda_mp#binary*
+g:goda_mp#binary
+	Path of the binary. Unset by default.
+
+						   *g:goda_mp#open_browser_fn*
+g:goda_mp#open_browser_fn
+	Name of a Vim function that receives the URL and opens it.
+	Default: ""
+
+							   *g:goda_mp#browser*
+g:goda_mp#browser
+	Browser to open. The system default when empty.
+	Default: ""
+>
+	let g:goda_mp#browser = 'chromium'
+<
+			       *g:goda_mp#server_host* *b:goda_mp_server_host*
+g:goda_mp#server_host
+b:goda_mp_server_host
+	Address the server listens on. On a loopback address the server
+	refuses requests whose Host header is not 127.0.0.1, localhost or
+	::1.
+	Default: "127.0.0.1"
+
+			       *g:goda_mp#server_port* *b:goda_mp_server_port*
+g:goda_mp#server_port
+b:goda_mp_server_port
+	Port the server listens on. 0 picks a free port.
+	Default: 0
+
+==============================================================================
+TROUBLESHOOTING					     *goda-mp-troubleshooting*
+
+The URL always appears in |:messages|. If the browser does not open, or the
+message "preview lost" appears, read the output of the binary:
+>
+	:echo goda#log('mp')
+<
+After "preview lost", |:PreviewMarkdown| starts a new preview.
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

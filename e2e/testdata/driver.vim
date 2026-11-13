@@ -1,8 +1,8 @@
-" Runs the commands the test writes to $GMP_E2E_DIR/cmd.N and answers in
+" Runs the commands the test writes to $GODA_MP_E2E_DIR/cmd.N and answers in
 " res.N. Vim and Neovim share no remote interface that works headless on both.
 set encoding=utf-8
 set hidden
-let &runtimepath = join(map([$GMP_E2E_PLUGIN, $GMP_E2E_GODA], {_, dir -> escape(dir, ',')}) + [&runtimepath], ',')
+let &runtimepath = join(map([$GODA_MP_E2E_PLUGIN, $GODA_MP_E2E_GODA], {_, dir -> escape(dir, ',')}) + [&runtimepath], ',')
 filetype plugin on
 
 " Keeps doautocmd quiet when the preview has no autocmds left, so that a
@@ -15,15 +15,15 @@ endfunction
 
 let s:step = 0
 while 1
-  let s:cmd = $GMP_E2E_DIR . '/cmd.' . s:step
+  let s:cmd = $GODA_MP_E2E_DIR . '/cmd.' . s:step
   if filereadable(s:cmd)
     try
       let s:answer = ['ok'] + split(execute(readfile(s:cmd)), "\n")
     catch
       let s:answer = ['error', v:exception]
     endtry
-    call writefile(s:answer, $GMP_E2E_DIR . '/res.tmp')
-    call rename($GMP_E2E_DIR . '/res.tmp', $GMP_E2E_DIR . '/res.' . s:step)
+    call writefile(s:answer, $GODA_MP_E2E_DIR . '/res.tmp')
+    call rename($GODA_MP_E2E_DIR . '/res.tmp', $GODA_MP_E2E_DIR . '/res.' . s:step)
     let s:step += 1
   endif
   sleep 5m

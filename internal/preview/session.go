@@ -45,8 +45,8 @@ func start(spec Spec, client fs.FS) (*session, error) {
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFileFS(w, r, client, "markdown.html")
 	})
-	mux.HandleFunc("GET /_gmp/ws", s.pump)
-	mux.Handle("GET /_gmp/", http.StripPrefix("/_gmp/", http.FileServerFS(client)))
+	mux.HandleFunc("GET /_goda-mp/ws", s.pump)
+	mux.Handle("GET /_goda-mp/", http.StripPrefix("/_goda-mp/", http.FileServerFS(client)))
 	mux.Handle("GET /", http.FileServer(http.Dir(spec.Root)))
 
 	var handler http.Handler = mux

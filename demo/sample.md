@@ -1,8 +1,8 @@
 ---
-title: gmp.vim demo
+title: goda-mp.vim demo
 ---
 
-# gmp.vim demo
+# goda-mp.vim demo
 
 Edit this file. The page updates as you type and follows the cursor.
 
@@ -19,6 +19,6 @@ $$E = mc^2$$
 
 ```mermaid
 graph TD
-  A[Vim] --> B[gmp]
+  A[Vim] --> B[goda-mp]
   B --> C[Browser]
 ```

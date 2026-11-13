@@ -160,7 +160,7 @@ function make_table(data) {
   }
 }
 
-const socket = new WebSocket("ws://" + location.host + "/_gmp/ws");
+const socket = new WebSocket("ws://" + location.host + "/_goda-mp/ws");
 socket.onerror = function (_) {
   document.getElementById("render").innerHTML =
     '<h1 align="center">Connection closed</h1>';

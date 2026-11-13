@@ -27,7 +27,7 @@
 
       mkPackages = pkgs: rec {
         client = pkgs.buildNpmPackage {
-          pname = "gmp-client";
+          pname = "goda-mp-client";
           inherit version;
           src = ./client;
           npmDeps = pkgs.importNpmLock { npmRoot = ./client; };
@@ -39,8 +39,8 @@
           '';
         };
 
-        gmp = pkgs.buildGo126Module {
-          pname = "gmp";
+        goda-mp = pkgs.buildGo126Module {
+          pname = "goda-mp";
           inherit version;
           src = ./.;
           vendorHash = "sha256-YaflM80d4knBldJdqNpmYF8k9vOAW4JtSG6WIVs3hY8=";
@@ -52,9 +52,9 @@
             chmod -R u+w client/dist
           '';
           postInstall = ''
-            mv $out/bin/gmp.vim $out/bin/gmp
+            mv $out/bin/goda-mp.vim $out/bin/goda-mp
           '';
-          meta.mainProgram = "gmp";
+          meta.mainProgram = "goda-mp";
         };
 
         goda-vim-plugin = pkgs.vimUtils.buildVimPlugin {
@@ -64,7 +64,7 @@
         };
 
         vim-plugin = pkgs.vimUtils.buildVimPlugin {
-          pname = "gmp.vim";
+          pname = "goda-mp.vim";
           inherit version;
           src = pkgs.lib.fileset.toSource {
             root = ./.;
@@ -78,7 +78,7 @@
           dependencies = [ goda-vim-plugin ];
           preInstall = ''
             mkdir bin
-            cp ${gmp}/bin/gmp bin/gmp
+            cp ${goda-mp}/bin/goda-mp bin/goda-mp
           '';
         };
 
@@ -89,12 +89,12 @@
         pkgs: editor:
         let
           built = mkPackages pkgs;
-          init = pkgs.writeText "gmp-demo.vim" ''
+          init = pkgs.writeText "goda-mp-demo.vim" ''
             set runtimepath^=${built.goda-vim-plugin},${built.vim-plugin}
             autocmd VimEnter * PreviewMarkdown
           '';
           script = pkgs.writeShellApplication {
-            name = "gmp-demo";
+            name = "goda-mp-demo";
             text = ''
               dir=$(mktemp -d)
               trap 'rm -rf "$dir"' EXIT
@@ -110,7 +110,7 @@
         {
           type = "app";
           program = pkgs.lib.getExe script;
-          meta.description = "Open a sample Markdown file in ${editor.pname} with only gmp.vim and goda.vim";
+          meta.description = "Open a sample Markdown file in ${editor.pname} with only goda-mp.vim and goda.vim";
         };
     in
     {
@@ -128,7 +128,7 @@
         {
           inherit (built)
             client
-            gmp
+            goda-mp
             vim-plugin
             default
             ;
@@ -142,8 +142,8 @@
           built = mkPackages pkgs;
           goTest =
             name: command:
-            built.gmp.overrideAttrs {
-              pname = "gmp-${name}";
+            built.goda-mp.overrideAttrs {
+              pname = "goda-mp-${name}";
               doCheck = true;
               __darwinAllowLocalNetworking = true;
               checkPhase = ''
@@ -165,11 +165,11 @@
                 pkgs.neovim
               ]
             }:$PATH
-            export GMP_E2E_GODA=${goda-vim}
-            export GMP_E2E_STRICT=1
+            export GODA_MP_E2E_GODA=${goda-vim}
+            export GODA_MP_E2E_STRICT=1
             go test -v -count=1 ./e2e
           '';
-          goda-pin = pkgs.runCommand "gmp-goda-pin" { } ''
+          goda-pin = pkgs.runCommand "goda-mp-goda-pin" { } ''
             grep -E 'github.com/Shougo/goda.vim v[^ ]*-${builtins.substring 0 12 goda-vim.rev}( |$)' ${./go.mod}
             touch $out
           '';

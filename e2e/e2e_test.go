@@ -1,4 +1,4 @@
-// Package e2e drives real Vim and Neovim through autoload/gmp.vim and goda's
+// Package e2e drives real Vim and Neovim through autoload/goda_mp.vim and goda's
 // autoload, with the test as the browser.
 //
 // A headless editor has no main loop to fire TextChanged and CursorMoved, so
@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 }
 
 func run(m *testing.M) int {
-	dir, err := os.MkdirTemp("", "gmp-e2e")
+	dir, err := os.MkdirTemp("", "goda-mp-e2e")
 	if err != nil {
 		panic(err)
 	}
@@ -47,13 +47,13 @@ func run(m *testing.M) int {
 	if repoRoot, err = filepath.Abs(".."); err != nil {
 		panic(err)
 	}
-	binary = filepath.Join(dir, "gmp")
+	binary = filepath.Join(dir, "goda-mp")
 	build := exec.Command("go", "build", "-o", binary, ".")
 	build.Dir = repoRoot
 	if out, err := build.CombinedOutput(); err != nil {
 		panic(fmt.Sprintf("go build: %v\n%s", err, out))
 	}
-	goda = os.Getenv("GMP_E2E_GODA")
+	goda = os.Getenv("GODA_MP_E2E_GODA")
 	if goda == "" {
 		list := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/Shougo/goda.vim")
 		list.Dir = repoRoot
@@ -93,9 +93,9 @@ var scenarios = map[string]func(*testing.T, *editor){
 		b.untilCursor(t, 1, 2)
 
 		for path, want := range map[string]string{
-			"/":                         "/_gmp/markdown.bundle.js",
-			"/_gmp/markdown.bundle.js":  "",
-			"/_gmp/markdown.bundle.css": "",
+			"/":                         "/_goda-mp/markdown.bundle.js",
+			"/_goda-mp/markdown.bundle.js":  "",
+			"/_goda-mp/markdown.bundle.css": "",
 			"/image.png":                "pixels",
 		} {
 			status, body := get(t, url+path)
@@ -106,7 +106,7 @@ var scenarios = map[string]func(*testing.T, *editor){
 	},
 
 	"open echoes the URL": func(t *testing.T, e *editor) {
-		e.run(t, "edit a.md", "let g:gmp_open_browser_fn = 'CaptureURL'")
+		e.run(t, "edit a.md", "let g:goda_mp#open_browser_fn = 'CaptureURL'")
 		out := e.run(t, "PreviewMarkdown")
 		if url := e.eval(t, "g:url"); !strings.Contains(out, url) {
 			t.Fatalf("messages %q have no %s", out, url)
@@ -114,7 +114,7 @@ var scenarios = map[string]func(*testing.T, *editor){
 	},
 
 	"without an opener function the browser starts with the URL": func(t *testing.T, e *editor) {
-		e.run(t, "edit a.md", "let g:gmp_browser = 'firefox'")
+		e.run(t, "edit a.md", "let g:goda_mp#browser = 'firefox'")
 		out := e.run(t, "PreviewMarkdown")
 		var opened []byte
 		eventually(t, "the opener ran", func() bool {
@@ -159,7 +159,7 @@ var scenarios = map[string]func(*testing.T, *editor){
 	},
 
 	"toggle opens, then closes": func(t *testing.T, e *editor) {
-		e.run(t, "edit a.md", "let g:gmp_open_browser_fn = 'CaptureURL'", "PreviewMarkdownToggle")
+		e.run(t, "edit a.md", "let g:goda_mp#open_browser_fn = 'CaptureURL'", "PreviewMarkdownToggle")
 		b := e.browser(t, e.eval(t, "g:url"))
 		b.untilBuf(t, "")
 		e.run(t, "PreviewMarkdownToggle")
@@ -194,7 +194,7 @@ var scenarios = map[string]func(*testing.T, *editor){
 
 	"reopening on a fixed port gives the same URL": func(t *testing.T, e *editor) {
 		port := freePort(t)
-		e.run(t, fmt.Sprintf("let g:gmp_server_port = %d", port))
+		e.run(t, fmt.Sprintf("let g:goda_mp#server_port = %d", port))
 		url, old := e.preview(t, "a.md", "old")
 		if !strings.HasSuffix(url, ":"+strconv.Itoa(port)) {
 			t.Fatalf("url = %s, want port %d", url, port)
@@ -211,9 +211,9 @@ var scenarios = map[string]func(*testing.T, *editor){
 		port := freePort(t)
 		e.run(t,
 			"edit a.md",
-			"let g:gmp_server_port = 1",
-			fmt.Sprintf("let b:gmp_server_port = %d", port),
-			"let g:gmp_server_host = 'localhost'",
+			"let g:goda_mp#server_port = 1",
+			fmt.Sprintf("let b:goda_mp_server_port = %d", port),
+			"let g:goda_mp#server_host = 'localhost'",
 		)
 		url, b := e.preview(t, "a.md", "one")
 		if url != fmt.Sprintf("http://localhost:%d", port) {
@@ -229,9 +229,9 @@ var scenarios = map[string]func(*testing.T, *editor){
 		}
 		defer ln.Close()
 		port := ln.Addr().(*net.TCPAddr).Port
-		e.run(t, "edit a.md", fmt.Sprintf("let g:gmp_server_port = %d", port))
+		e.run(t, "edit a.md", fmt.Sprintf("let g:goda_mp#server_port = %d", port))
 		out := e.run(t, "PreviewMarkdown")
-		if !strings.HasPrefix(out, "gmp: ") || !strings.Contains(out, "address already in use") || strings.Contains(out, "Vim(") {
+		if !strings.HasPrefix(out, "goda-mp: ") || !strings.Contains(out, "address already in use") || strings.Contains(out, "Vim(") {
 			t.Fatalf("messages = %q", out)
 		}
 		if out := e.run(t, "doautocmd TextChanged"); out != "" {
@@ -249,16 +249,16 @@ var scenarios = map[string]func(*testing.T, *editor){
 		if err := syscall.Kill(started[len(started)-1], syscall.SIGKILL); err != nil {
 			t.Fatal(err)
 		}
-		eventually(t, "the editor sees the exit", func() bool { return e.eval(t, "goda#is_running('gmp')") == "0" })
+		eventually(t, "the editor sees the exit", func() bool { return e.eval(t, "goda#is_running('mp')") == "0" })
 
 		out := e.run(t, "call setline(1, 'late')", "doautocmd TextChanged")
-		if !strings.Contains(out, `gmp: preview lost, see goda#log("gmp")`) {
+		if !strings.Contains(out, `goda-mp: preview lost, see goda#log("mp")`) {
 			t.Fatalf("messages = %q", out)
 		}
 		if out := e.run(t, "doautocmd TextChanged", "doautocmd CursorMoved"); out != "" {
 			t.Fatalf("later edits printed %q", out)
 		}
-		if got := e.starts(t); len(got) != len(started) || e.eval(t, "goda#is_running('gmp')") != "0" {
+		if got := e.starts(t); len(got) != len(started) || e.eval(t, "goda#is_running('mp')") != "0" {
 			t.Fatalf("binary started again: %v, was %v", got, started)
 		}
 
@@ -278,17 +278,17 @@ var scenarios = map[string]func(*testing.T, *editor){
 	},
 
 	"a non-markdown buffer is refused": func(t *testing.T, e *editor) {
-		out := e.run(t, "edit a.txt", "call gmp#open()")
-		if !strings.Contains(out, "gmp: not a markdown file") {
+		out := e.run(t, "edit a.txt", "call goda_mp#open()")
+		if !strings.Contains(out, "goda-mp: not a markdown file") {
 			t.Fatalf("messages = %q", out)
 		}
-		if e.eval(t, "goda#is_running('gmp')") != "0" {
+		if e.eval(t, "goda#is_running('mp')") != "0" {
 			t.Fatal("the binary started for a refused buffer")
 		}
 	},
 
 	"a line of invalid UTF-8 reaches the browser with a replacement": func(t *testing.T, e *editor) {
-		e.run(t, "edit a.md", "let g:gmp_open_browser_fn = 'CaptureURL'", `call setline(1, "open\xffed")`, "PreviewMarkdown")
+		e.run(t, "edit a.md", "let g:goda_mp#open_browser_fn = 'CaptureURL'", `call setline(1, "open\xffed")`, "PreviewMarkdown")
 		b := e.browser(t, e.eval(t, "g:url"))
 		b.untilBuf(t, "open�ed")
 		e.run(t, `call setline(1, "edit\xffed")`, "doautocmd TextChanged")
@@ -297,7 +297,7 @@ var scenarios = map[string]func(*testing.T, *editor){
 
 	"a large buffer opens and updates": func(t *testing.T, e *editor) {
 		const lines = 20000
-		e.run(t, "edit a.md", "let g:gmp_open_browser_fn = 'CaptureURL'",
+		e.run(t, "edit a.md", "let g:goda_mp#open_browser_fn = 'CaptureURL'",
 			fmt.Sprintf("call setline(1, map(range(%d), 'string(v:val)'))", lines),
 			"PreviewMarkdown")
 		b := e.browser(t, e.eval(t, "g:url"))
@@ -315,14 +315,14 @@ var scenarios = map[string]func(*testing.T, *editor){
 	},
 
 	"the binary is found in bin, then in result/bin": func(t *testing.T, e *editor) {
-		e.run(t, "unlet g:gmp_binary", "edit a.md", "let g:gmp_open_browser_fn = 'CaptureURL'")
+		e.run(t, "unlet g:goda_mp#binary", "edit a.md", "let g:goda_mp#open_browser_fn = 'CaptureURL'")
 		out := e.run(t, "PreviewMarkdown")
 		if !strings.Contains(out, "no binary found") || !strings.Contains(out, "nix build") {
 			t.Fatalf("messages = %q", out)
 		}
 
 		for _, dir := range []string{"result/bin", "bin"} {
-			link := filepath.Join(e.plugin, dir, "gmp")
+			link := filepath.Join(e.plugin, dir, "goda-mp")
 			if err := os.MkdirAll(filepath.Dir(link), 0o755); err != nil {
 				t.Fatal(err)
 			}
@@ -330,7 +330,7 @@ var scenarios = map[string]func(*testing.T, *editor){
 				t.Fatal(err)
 			}
 			e.run(t, "PreviewMarkdown")
-			if got := e.eval(t, "goda#plugins().gmp"); !strings.HasSuffix(got, "/plugin/"+dir+"/gmp") {
+			if got := e.eval(t, "goda#plugins().mp"); !strings.HasSuffix(got, "/plugin/"+dir+"/goda-mp") {
 				t.Fatalf("running %s, want the one in %s", got, dir)
 			}
 			e.run(t, "call goda#stop()")
@@ -342,7 +342,7 @@ func TestEditors(t *testing.T) {
 	for _, kind := range editorKinds {
 		t.Run(kind.name, func(t *testing.T) {
 			if !kind.installed() {
-				if os.Getenv("GMP_E2E_STRICT") != "" {
+				if os.Getenv("GODA_MP_E2E_STRICT") != "" {
 					t.Fatalf("%s is not installed", kind.name)
 				}
 				t.Skipf("%s is not installed", kind.name)
@@ -381,7 +381,7 @@ func start(t *testing.T, kind editorKind) *editor {
 	}
 
 	// The wrapper records each process, because goda does not expose its pid.
-	wrapper := filepath.Join(dir, "gmp-wrapper")
+	wrapper := filepath.Join(dir, "goda-mp-wrapper")
 	script := fmt.Sprintf("#!/bin/sh\necho $$ >> %s\nexec %s \"$@\"\n", e.startLog, binary)
 	if err := os.WriteFile(wrapper, []byte(script), 0o755); err != nil {
 		t.Fatal(err)
@@ -403,9 +403,9 @@ func start(t *testing.T, kind editorKind) *editor {
 	e.cmd = exec.Command(kind.command[0], append(kind.command[1:], "-S", driver)...)
 	e.cmd.Dir = dir
 	e.cmd.Env = append(os.Environ(),
-		"GMP_E2E_DIR="+dir,
-		"GMP_E2E_PLUGIN="+e.plugin,
-		"GMP_E2E_GODA="+goda,
+		"GODA_MP_E2E_DIR="+dir,
+		"GODA_MP_E2E_PLUGIN="+e.plugin,
+		"GODA_MP_E2E_GODA="+goda,
 		"HOME="+dir,
 		"XDG_CONFIG_HOME="+filepath.Join(dir, "xdg-config"),
 		"XDG_DATA_HOME="+filepath.Join(dir, "xdg-data"),
@@ -432,7 +432,7 @@ func start(t *testing.T, kind editorKind) *editor {
 			<-e.exited
 		}
 	})
-	e.run(t, "let g:gmp_binary = "+strconv.Quote(wrapper))
+	e.run(t, "let g:goda_mp#binary = "+strconv.Quote(wrapper))
 	return e
 }
 
@@ -500,7 +500,7 @@ func (e *editor) preview(t *testing.T, name string, lines ...string) (string, *b
 	}
 	e.run(t,
 		"edit! "+name,
-		"let g:gmp_open_browser_fn = 'CaptureURL'",
+		"let g:goda_mp#open_browser_fn = 'CaptureURL'",
 		"let g:url = ''",
 		"silent %delete _",
 		"call setline(1, "+string(quoted)+")",
@@ -518,7 +518,7 @@ func (e *editor) browser(t *testing.T, url string) *browser {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), patience)
 	defer cancel()
-	c, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(url, "http")+"/_gmp/ws", nil)
+	c, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(url, "http")+"/_goda-mp/ws", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

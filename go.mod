@@ -1,4 +1,4 @@
-module github.com/airRnot1106/gmp.vim
+module github.com/airRnot1106/goda-mp.vim
 
 go 1.26
 

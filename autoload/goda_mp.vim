@@ -1,10 +1,10 @@
 let s:root = expand('<sfile>:p:h:h')
 let s:previewing = 0
 
-augroup gmp_session
+augroup goda_mp_session
 augroup END
 
-function! gmp#open() abort
+function! goda_mp#open() abort
   if &filetype !=# 'markdown'
     return s:warn('not a markdown file')
   endif
@@ -12,21 +12,21 @@ function! gmp#open() abort
   try
     " goda keeps a failed start until the next goda#register(), and a later
     " :PreviewMarkdown has to see a binary built in the meantime.
-    call goda#register('gmp', function('s:start'),
-          \ #{version: 1, module: 'github.com/airRnot1106/gmp.vim'})
-    let url = goda#request('gmp', 'open', #{
-          \ host: s:option('gmp_server_host', '127.0.0.1'),
-          \ port: s:option('gmp_server_port', 0),
+    call goda#register('mp', function('s:start'),
+          \ #{version: 1, module: 'github.com/airRnot1106/goda-mp.vim'})
+    let url = goda#request('mp', 'open', #{
+          \ host: s:option('server_host', '127.0.0.1'),
+          \ port: s:option('server_port', 0),
           \ root: expand('%:p:h'),
           \ name: expand('%:t'),
           \ lines: getline(1, '$'),
           \ cursor: line('.'),
           \ })
     let s:previewing = 1
-    augroup gmp_session
+    augroup goda_mp_session
       autocmd TextChanged,TextChangedI,TextChangedP <buffer> call s:push('text', getline(1, '$'))
       autocmd CursorMoved,CursorMovedI <buffer> call s:push('cursor', line('.'))
-      autocmd BufDelete,BufWipeout <buffer> call gmp#close()
+      autocmd BufDelete,BufWipeout <buffer> call goda_mp#close()
     augroup END
     call s:browse(url)
   catch
@@ -34,69 +34,69 @@ function! gmp#open() abort
   endtry
 endfunction
 
-function! gmp#close() abort
+function! goda_mp#close() abort
   call s:forget()
-  if goda#is_running('gmp')
-    call goda#notify('gmp', 'close')
+  if goda#is_running('mp')
+    call goda#notify('mp', 'close')
   endif
 endfunction
 
-function! gmp#toggle() abort
+function! goda_mp#toggle() abort
   if s:previewing
-    call gmp#close()
+    call goda_mp#close()
   else
-    call gmp#open()
+    call goda_mp#open()
   endif
 endfunction
 
 function! s:start() abort
-  if exists('g:gmp_binary')
-    call goda#start(g:gmp_binary)
+  if exists('g:goda_mp#binary')
+    call goda#start(g:goda_mp#binary)
     return
   endif
-  for bin in [s:root . '/bin/gmp', s:root . '/result/bin/gmp']
+  for bin in [s:root . '/bin/goda-mp', s:root . '/result/bin/goda-mp']
     if executable(bin)
       call goda#start(bin)
       return
     endif
   endfor
-  throw 'gmp: no binary found, run nix build in ' . s:root . ' or see :help gmp-install'
+  throw 'goda-mp: no binary found, run nix build in ' . s:root . ' or see :help goda-mp-install'
 endfunction
 
 " goda#notify() starts a registered binary that died, and the fresh process
 " has no session, so the check comes first.
 function! s:push(method, arg) abort
-  if goda#is_running('gmp')
-    call goda#notify('gmp', a:method, a:arg)
+  if goda#is_running('mp')
+    call goda#notify('mp', a:method, a:arg)
   else
     call s:forget()
-    call s:warn('preview lost, see goda#log("gmp")')
+    call s:warn('preview lost, see goda#log("mp")')
   endif
 endfunction
 
 function! s:forget() abort
   let s:previewing = 0
-  autocmd! gmp_session
+  autocmd! goda_mp_session
 endfunction
 
 function! s:browse(url) abort
-  echomsg 'gmp: ' . a:url
-  let Open = get(g:, 'gmp_open_browser_fn', '')
+  echomsg 'goda-mp: ' . a:url
+  let Open = get(g:, 'goda_mp#open_browser_fn', '')
   if empty(Open)
-    call goda#notify('gmp', 'browse', a:url, get(g:, 'gmp_browser', ''))
+    call goda#notify('mp', 'browse', a:url, get(g:, 'goda_mp#browser', ''))
   else
     call call(Open, [a:url])
   endif
 endfunction
 
 function! s:option(name, default) abort
-  return get(b:, a:name, get(g:, a:name, a:default))
+  return get(b:, 'goda_mp_' . a:name, get(g:, 'goda_mp#' . a:name, a:default))
 endfunction
 
 function! s:warn(message) abort
   " Neovim wraps an error of the binary in the name of the request.
-  let message = substitute(a:message, '^Vim(\a\+):Invoking .\{-} on channel \d\+:\n\|^gmp: ', '', '')
+  let message = substitute(a:message, '^Vim(\a\+):Invoking .\{-} on channel \d\+:\n\|^goda-mp: ', '', '')
   echohl WarningMsg
-  echomsg 'gmp: ' . message
+  echomsg 'goda-mp: ' . message
   echohl None
 endfunction

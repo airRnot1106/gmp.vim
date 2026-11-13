@@ -1,4 +1,4 @@
-// Package preview is the gmp plugin. It relays a buffer to browsers.
+// Package preview is the goda-mp plugin. It relays a buffer to browsers.
 package preview
 
 import (
@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	// scriptVersion matches the version autoload/gmp.vim passes to goda#register.
+	// scriptVersion matches the version autoload/goda_mp.vim passes to goda#register.
 	scriptVersion = 1
 	closeGrace    = 200 * time.Millisecond
 )
@@ -43,7 +43,7 @@ func New(client fs.FS) *Preview {
 }
 
 // Name implements sdk.Plugin.
-func (p *Preview) Name() string { return "gmp" }
+func (p *Preview) Name() string { return "mp" }
 
 // ScriptVersion implements sdk.ScriptVersioner.
 func (p *Preview) ScriptVersion() int { return scriptVersion }
@@ -160,7 +160,7 @@ func browse(_ context.Context, _ sdk.Host, params []any) (any, error) {
 	}
 	go func() {
 		if err := cmd.Wait(); err != nil {
-			fmt.Fprintf(os.Stderr, "gmp: %s: %v\n", argv[0], err)
+			fmt.Fprintf(os.Stderr, "goda-mp: %s: %v\n", argv[0], err)
 		}
 	}()
 	return nil, nil
